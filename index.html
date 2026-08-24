@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Anatocismo — Henry Salinas vs. Banco Galicia</title>
+<style>
+:root {
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --gray: #6b7280;
+  --gray-light: #f9fafb;
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --dark: #111827;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f3f4f6; color: var(--dark); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+header { background: var(--dark); color: white; padding: 40px 20px; text-align: center; }
+header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+header p { color: #9ca3af; font-size: 0.95rem; }
+.legal-note { background: var(--red-light); border-left: 4px solid var(--red); padding: 16px 20px; margin: 24px 0; border-radius: 4px; font-size: 0.9rem; }
+.legal-note strong { color: var(--red); }
+
+/* Dashboard */
+.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 30px 0; }
+.stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+.stat-card .value { font-size: 1.6rem; font-weight: 700; margin: 8px 0 4px; }
+.stat-card .label { font-size: 0.85rem; color: var(--gray); }
+.stat-card.danger .value { color: var(--red); }
+.stat-card.success .value { color: var(--green); }
+.stat-card.info .value { color: var(--blue); }
+
+/* Chart */
+.chart-section { background: white; border-radius: 12px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.chart-section h2 { margin-bottom: 16px; font-size: 1.1rem; }
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 220px; padding: 10px 0; border-bottom: 2px solid var(--border); }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.bar-stack { width: 100%; max-width: 50px; display: flex; flex-direction: column; justify-content: flex-end; }
+.bar-segment { width: 100%; transition: height 0.3s; position: relative; }
+.bar-segment:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; z-index: 10; }
+.bar-capital { background: #94a3b8; }
+.bar-anatocismo { background: var(--red); }
+.bar-label { font-size: 0.65rem; margin-top: 6px; color: var(--gray); text-align: center; }
+.chart-legend { display: flex; gap: 20px; margin-top: 12px; font-size: 0.8rem; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+/* Salary line */
+.salary-chart { margin: 24px 0; }
+.salary-bar-container { display: flex; align-items: flex-end; gap: 6px; height: 160px; border-bottom: 2px solid var(--border); position: relative; padding: 10px 0; }
+.salary-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--red); z-index: 5; }
+.salary-line-label { position: absolute; right: 0; top: -18px; font-size: 0.7rem; color: var(--red); font-weight: 600; }
+.pago-bar { flex: 1; max-width: 50px; background: var(--blue); border-radius: 3px 3px 0 0; position: relative; }
+.pago-bar.over { background: var(--red); }
+
+/* Month sections */
+.month-section { background: white; border-radius: 12px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+.month-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); user-select: none; }
+.month-header:hover { background: var(--gray-light); }
+.month-header h3 { font-size: 1rem; }
+.month-header .badge { font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+.badge-danger { background: var(--red-light); color: var(--red); }
+.badge-warning { background: #fffbeb; color: #d97706; }
+.badge-ok { background: var(--green-light); color: var(--green); }
+.month-content { display: none; padding: 20px; }
+.month-content.open { display: block; }
+.month-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 700px) { .month-grid { grid-template-columns: 1fr; } }
+.card-visa, .card-master { border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.card-visa h4 { color: #1d4ed8; margin-bottom: 10px; }
+.card-master h4 { color: #dc2626; margin-bottom: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+table th { text-align: left; padding: 6px 8px; background: var(--gray-light); font-weight: 600; }
+table td { padding: 6px 8px; border-top: 1px solid var(--border); }
+table .highlight { color: var(--red); font-weight: 600; }
+table .positive { color: var(--green); font-weight: 600; }
+.month-analysis { margin-top: 12px; padding: 12px; background: var(--red-light); border-radius: 6px; font-size: 0.85rem; }
+.month-analysis strong { color: var(--red); }
+.arrow { transition: transform 0.2s; }
+.arrow.open { transform: rotate(180deg); }
+
+/* Footer */
+footer { text-align: center; padding: 30px; font-size: 0.8rem; color: var(--gray); }
+footer a { color: var(--blue); }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 0.85rem; background: var(--gray-light); border: 1px solid var(--border); border-bottom: none; }
+.tab.active { background: white; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Análisis de Anatocismo — Tarjetas de Crédito</h1>
+<p>Henry J. Salinas Pedroza vs. Banco de Galicia y Buenos Aires S.A.U. | Cuenta 1208172759 — Suc. 245</p>
+<p style="margin-top:8px;color:#f87171;font-weight:600;">Art. 23 Ley 25.065: "Se encuentra expresamente prohibido la capitalización de los intereses"</p>
+</header>
+
+<div class="container">
+
+<div class="legal-note">
+<strong>Documento probatorio.</strong> Los datos fueron extraídos textualmente de los resúmenes oficiales emitidos por Banco Galicia.
+El propio banco imprime en cada resumen la leyenda: "Según lo estipulado en Ley 25.065, art 23., se encuentra expresamente prohibido la capitalización de los intereses." Sin embargo, calcula intereses mes a mes sobre saldos que ya contienen intereses previos.
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard">
+<div class="stat-card danger">
+  <div class="label">Deuda actual (Ago-2026)</div>
+  <div class="value">$8.089.679</div>
+  <div class="label">VISA $3.898.644 + MC $4.191.034</div>
+</div>
+<div class="stat-card success">
+  <div class="label">Total pagado (12 meses)</div>
+  <div class="value">$7.605.257</div>
+  <div class="label">Promedio $633.771/mes</div>
+</div>
+<div class="stat-card danger">
+  <div class="label">Anatocismo estimado</div>
+  <div class="value">$2.855.846</div>
+  <div class="label">33% VISA + 37,7% MC</div>
+</div>
+<div class="stat-card info">
+  <div class="label">Pago mínimo vs salario</div>
+  <div class="value">128,8%</div>
+  <div class="label">$2.164.560 vs $1.680.000</div>
+</div>
+</div>
+
+<!-- Chart: Evolución del anatocismo en el saldo -->
+<div class="chart-section">
+<h2>Evolución: Capital legítimo vs. Anatocismo en el saldo</h2>
+<div class="bar-chart" id="anatChart"></div>
+<div class="chart-legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div> Capital + consumos legítimos</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div> Intereses capitalizados (anatocismo)</div>
+</div>
+</div>
+
+<!-- Chart: Pago mínimo vs salario -->
+<div class="chart-section">
+<h2>Pago mínimo combinado vs. Salario ($1.680.000)</h2>
+<div class="salary-bar-container" id="salaryChart"></div>
+<div class="chart-legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div> Pago mínimo (pagable)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div> Pago mínimo (supera salario)</div>
+  <div class="legend-item" style="color:var(--red);font-weight:600;">--- Línea: Salario $1.680.000</div>
+</div>
+</div>
+
+<!-- Month by month sections -->
+<h2 style="margin:30px 0 16px;font-size:1.2rem;">Detalle mes a mes</h2>
+
+<div id="monthSections"></div>
+
+<div class="legal-note" style="margin-top:30px;">
+<strong>Conclusión.</strong> El titular pagó $7.605.257 en 12 meses — más que la deuda original ($916.211 VISA + saldo a favor MC).
+La deuda no solo no se redujo, sino que CRECIÓ a $8.089.679. Esto solo es posible por la capitalización ilegal de intereses
+(anatocismo) que el Art. 23 de la Ley 25.065 prohíbe expresamente y que el propio banco reconoce en cada resumen emitido.
+</div>
+
+</div>
+
+<footer>
+Generado: 24 de agosto de 2026 | Caso: Trámite 45697/26 (Defensoría CABA) — EX-2026-31930975 (TAD) — J-01-00200255-4/2026 (SCJCABA)<br>
+<a href="https://drive.google.com/drive/folders/1B2HP9LjoUW6H75jFSS-O1JQDqmMVY9W7?usp=sharing" target="_blank">Documentación completa en Google Drive</a>
+</footer>
+
+<script>
+// ===== DATA =====
+const visaData = [
+  {period:"Jul-25",cierre:"31-Jul-25",saldoAnt:916303,consumos:1415622,pagos:917000,intereses:0,punitorios:0,iva:0,saldoFin:1434565,pagoMin:104400,anatocismo:0,obs:"Sin intereses. Pagó $917K."},
+  {period:"Sep-25",cierre:"02-Oct-25",saldoAnt:741838,consumos:1789462,pagos:800000,intereses:12566,punitorios:0,iva:2639,saldoFin:1790703,pagoMin:107000,anatocismo:12566,obs:"PRIMER cobro de intereses: $12.566."},
+  {period:"Oct-25",cierre:"30-Oct-25",saldoAnt:1790703,consumos:447051,pagos:1049000,intereses:56467,punitorios:0,iva:11858,saldoFin:1262596,pagoMin:145880,anatocismo:69033,obs:"Intereses 4x. Se calculan sobre saldo con $12.566 de int. previos."},
+  {period:"Nov-25",cierre:"27-Nov-25",saldoAnt:1262596,consumos:203306,pagos:400000,intereses:72246,punitorios:0,iva:15172,saldoFin:1173618,pagoMin:175820,anatocismo:141279,obs:"Int. sobre saldo con $69K de int. acumulados."},
+  {period:"Dic-25",cierre:"31-Dic-25",saldoAnt:1173618,consumos:948636,pagos:600000,intereses:62136,punitorios:0,iva:13048,saldoFin:1619957,pagoMin:188630,anatocismo:203415,obs:"Int. sobre saldo con $141K de int. acumulados."},
+  {period:"Ene-26",cierre:"29-Ene-26",saldoAnt:1619957,consumos:211493,pagos:188630,intereses:92662,punitorios:0,iva:19459,saldoFin:1824071,pagoMin:235420,anatocismo:296077,obs:"Pagó SOLO el mínimo. Int. sobre $203K acumulados."},
+  {period:"Feb-26",cierre:"26-Feb-26",saldoAnt:1824071,consumos:138335,pagos:235420,intereses:108801,punitorios:0,iva:24809,saldoFin:1941912,pagoMin:253310,anatocismo:404878,obs:"Int. sobre $296K acumulados. Solo paga mínimo."},
+  {period:"Mar-26",cierre:"26-Mar-26",saldoAnt:1941912,consumos:211813,pagos:253310,intereses:129041,punitorios:0,iva:27099,saldoFin:2103040,pagoMin:264420,anatocismo:533919,obs:"Int. sobre $405K acumulados. ANATOCISMO MASIVO."},
+  {period:"Abr-26",cierre:"30-Abr-26",saldoAnt:2103040,consumos:509839,pagos:264420,intereses:140434,punitorios:0,iva:29491,saldoFin:2538533,pagoMin:301720,anatocismo:674354,obs:"Int. sobre $534K acumulados."},
+  {period:"May-26",cierre:"28-May-26",saldoAnt:2538533,consumos:634291,pagos:301720,intereses:147821,punitorios:0,iva:31042,saldoFin:3071075,pagoMin:336940,anatocismo:822175,obs:"Int. sobre $674K acumulados."},
+  {period:"Jul-26",cierre:"02-Jul-26",saldoAnt:3071075,consumos:461345,pagos:336940,intereses:249546,punitorios:0,iva:52405,saldoFin:3517839,pagoMin:613520,anatocismo:1071721,obs:"Intereses EXPLOTAN a $249K."},
+  {period:"Ago-26",cierre:"30-Jul-26",saldoAnt:3517839,consumos:52283,pagos:0,intereses:195420,punitorios:14706,iva:44126,saldoFin:3852902,pagoMin:1025230,anatocismo:1281847,obs:"NO PAGÓ (imposible). Primer punitorio. 33% del saldo es anatocismo."}
+];
+
+const mcData = [
+  {period:"Jul-25",cierre:"10-Jul-25",saldoAnt:210167,consumos:27008,pagos:237267,intereses:0,punitorios:0,iva:0,saldoFin:-92,pagoMin:0,anatocismo:0,obs:"Pagó TODO. Saldo A FAVOR -$92."},
+  {period:"Ago-25",cierre:"07-Ago-25",saldoAnt:-92,consumos:16784,pagos:500,intereses:0,punitorios:0,iva:0,saldoFin:16192,pagoMin:910,anatocismo:0,obs:"Consumos menores. Sin intereses."},
+  {period:"Sep-25",cierre:"11-Sep-25",saldoAnt:16192,consumos:3454,pagos:20500,intereses:71,punitorios:4,iva:16,saldoFin:-762,pagoMin:0,anatocismo:0,obs:"Pagó más del total. Saldo a favor."},
+  {period:"Oct-25",cierre:"09-Oct-25",saldoAnt:-762,consumos:3454,pagos:0,intereses:0,punitorios:0,iva:1840,saldoFin:13291,pagoMin:10660,anatocismo:0,obs:"Comisión reposición $8.760."},
+  {period:"Nov-25",cierre:"05-Nov-25",saldoAnt:13291,consumos:711680,pagos:16600,intereses:278,punitorios:223,iva:135,saldoFin:709153,pagoMin:35680,anatocismo:782,obs:"Consumos MASIVOS $711K."},
+  {period:"Dic-25",cierre:"31-Dic-25",saldoAnt:709153,consumos:null,pagos:null,intereses:null,punitorios:null,iva:null,saldoFin:1459365,pagoMin:null,anatocismo:50000,obs:"RESUMEN NO DISPONIBLE. Deuda duplicada."},
+  {period:"Ene-26",cierre:"29-Ene-26",saldoAnt:1459365,consumos:902943,pagos:462980,intereses:62681,punitorios:0,iva:13163,saldoFin:1975172,pagoMin:175370,anatocismo:126000,obs:"Int. $62.680 sobre saldo con ~$50K int. previos."},
+  {period:"Feb-26",cierre:"26-Feb-26",saldoAnt:1975172,consumos:null,pagos:null,intereses:null,punitorios:null,iva:null,saldoFin:2717388,pagoMin:null,anatocismo:300000,obs:"RESUMEN NO DISPONIBLE. Creció $742K en un mes."},
+  {period:"Mar-26",cierre:"26-Mar-26",saldoAnt:2717388,consumos:458590,pagos:276290,intereses:182033,punitorios:0,iva:38227,saldoFin:3119947,pagoMin:369110,anatocismo:520000,obs:"Int. $182K sobre base con int. capitalizados."},
+  {period:"Abr-26",cierre:"30-Abr-26",saldoAnt:3119947,consumos:769123,pagos:369110,intereses:208636,punitorios:0,iva:43814,saldoFin:3772410,pagoMin:432320,anatocismo:773000,obs:"Int. $209K sobre base inflada. Deuda +$652K."},
+  {period:"May-26",cierre:"28-May-26",saldoAnt:3772410,consumos:129025,pagos:432320,intereses:219460,punitorios:0,iva:46087,saldoFin:3736780,pagoMin:443250,anatocismo:946000,obs:"Pago mínimo apenas baja la deuda $35K."},
+  {period:"Jun-26",cierre:"02-Jul-26",saldoAnt:3736780,consumos:179168,pagos:443250,intereses:299788,punitorios:1605,iva:63629,saldoFin:3846625,pagoMin:642150,anatocismo:1313000,obs:"Int. $301K SUPERAN el pago de $443K. Pagó y DEBE MÁS."},
+  {period:"Jul-26",cierre:"30-Jul-26",saldoAnt:3846625,consumos:55297,pagos:0,intereses:210559,punitorios:13703,iva:47095,saldoFin:4173280,pagoMin:1139330,anatocismo:1574000,obs:"NO PAGÓ. 37,7% del saldo es anatocismo."}
+];
+
+// Combined pago minimo data
+const pagoMinData = [
+  {period:"Jul-25",visa:104400,mc:0},
+  {period:"Oct-25(1)",visa:107000,mc:10660},
+  {period:"Oct-25",visa:145880,mc:35680},
+  {period:"Nov-25",visa:175820,mc:35680},
+  {period:"Dic-25",visa:188630,mc:0},
+  {period:"Ene-26",visa:235420,mc:175370},
+  {period:"Feb-26",visa:253310,mc:0},
+  {period:"Mar-26",visa:264420,mc:369110},
+  {period:"Abr-26",visa:301720,mc:432320},
+  {period:"May-26",visa:336940,mc:443250},
+  {period:"Jun-26",visa:613520,mc:642150},
+  {period:"Ago-26",visa:1025230,mc:1139330}
+];
+
+const salary = 1680000;
+
+// ===== RENDER ANATOCISMO CHART =====
+function renderAnatChart() {
+  const container = document.getElementById('anatChart');
+  // Use VISA data for main chart (cleaner, more complete)
+  const maxVal = Math.max(...visaData.map(d => d.saldoFin));
+  let html = '';
+  visaData.forEach(d => {
+    const totalH = (d.saldoFin / maxVal) * 100;
+    const anatH = (d.anatocismo / maxVal) * 100;
+    const capH = totalH - anatH;
+    html += `<div class="bar-group">
+      <div class="bar-stack">
+        <div class="bar-segment bar-anatocismo" style="height:${anatH}%" data-tooltip="Anatocismo: $${(d.anatocismo/1000000).toFixed(1)}M"></div>
+        <div class="bar-segment bar-capital" style="height:${capH}%" data-tooltip="Capital: $${((d.saldoFin-d.anatocismo)/1000000).toFixed(1)}M"></div>
+      </div>
+      <div class="bar-label">${d.period}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ===== RENDER SALARY CHART =====
+function renderSalaryChart() {
+  const container = document.getElementById('salaryChart');
+  const maxVal = Math.max(...pagoMinData.map(d => d.visa + d.mc), salary * 1.1);
+  const salaryPct = (salary / maxVal) * 100;
+  
+  let html = `<div class="salary-line" style="bottom:${salaryPct}%"><span class="salary-line-label">Salario $1.680.000</span></div>`;
+  pagoMinData.forEach(d => {
+    const total = d.visa + d.mc;
+    const h = (total / maxVal) * 100;
+    const over = total > salary;
+    html += `<div class="bar-group">
+      <div class="pago-bar ${over?'over':''}" style="height:${h}%" title="${d.period}: $${(total/1000).toFixed(0)}K"></div>
+      <div class="bar-label">${d.period}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ===== RENDER MONTH SECTIONS =====
+function renderMonths() {
+  const container = document.getElementById('monthSections');
+  // Merge periods
+  const allPeriods = new Set([...visaData.map(d=>d.period), ...mcData.map(d=>d.period)]);
+  const sorted = [...allPeriods].sort((a,b) => {
+    const order = ["Jul-25","Ago-25","Sep-25","Oct-25","Nov-25","Dic-25","Ene-26","Feb-26","Mar-26","Abr-26","May-26","Jun-26","Jul-26","Ago-26"];
+    return order.indexOf(a) - order.indexOf(b);
+  });
+
+  let html = '';
+  sorted.forEach((period, idx) => {
+    const visa = visaData.find(d => d.period === period);
+    const mc = mcData.find(d => d.period === period);
+    
+    // Determine badge
+    let badge = '<span class="badge badge-ok">Sin intereses</span>';
+    const maxAnat = Math.max(visa?.anatocismo||0, mc?.anatocismo||0);
+    if (maxAnat > 500000) badge = '<span class="badge badge-danger">Anatocismo extremo</span>';
+    else if (maxAnat > 50000) badge = '<span class="badge badge-warning">Anatocismo acumulado</span>';
+    else if (maxAnat > 0) badge = '<span class="badge badge-warning">Intereses detectados</span>';
+
+    html += `<div class="month-section">
+      <div class="month-header" onclick="toggleMonth(this)">
+        <h3>${period}</h3>
+        <div>${badge} <span class="arrow">▼</span></div>
+      </div>
+      <div class="month-content${idx===sorted.length-1?' open':''}">
+        <div class="month-grid">`;
+
+    if (visa) {
+      html += `<div class="card-visa"><h4>VISA Platinum</h4>
+        <table>
+          <tr><th>Concepto</th><th>Monto</th></tr>
+          <tr><td>Saldo anterior</td><td>$${fmt(visa.saldoAnt)}</td></tr>
+          <tr><td>Consumos</td><td>$${fmt(visa.consumos)}</td></tr>
+          <tr><td class="positive">Pagos</td><td class="positive">-$${fmt(visa.pagos)}</td></tr>
+          <tr><td>Intereses financiación</td><td class="highlight">$${fmt(visa.intereses)}</td></tr>
+          ${visa.punitorios?`<tr><td>Punitorios</td><td class="highlight">$${fmt(visa.punitorios)}</td></tr>`:''}
+          <tr><td>IVA sobre intereses</td><td>$${fmt(visa.iva)}</td></tr>
+          <tr><th>Saldo final</th><th>$${fmt(visa.saldoFin)}</th></tr>
+          <tr><td>Pago mínimo</td><td>$${fmt(visa.pagoMin)}</td></tr>
+          <tr><td style="color:var(--red)">Anatocismo acumulado</td><td class="highlight">$${fmt(visa.anatocismo)}</td></tr>
+          <tr><td>% del saldo que es anatocismo</td><td class="highlight">${visa.saldoFin>0?((visa.anatocismo/visa.saldoFin)*100).toFixed(1):'0'}%</td></tr>
+        </table>
+        <div class="month-analysis"><strong>VISA:</strong> ${visa.obs}</div>
+      </div>`;
+    }
+
+    if (mc) {
+      html += `<div class="card-master"><h4>Mastercard Platinum</h4>
+        <table>
+          <tr><th>Concepto</th><th>Monto</th></tr>
+          <tr><td>Saldo anterior</td><td>$${fmt(mc.saldoAnt)}</td></tr>
+          <tr><td>Consumos</td><td>${mc.consumos!==null?'$'+fmt(mc.consumos):'N/D'}</td></tr>
+          <tr><td class="positive">Pagos</td><td class="positive">${mc.pagos!==null?'-$'+fmt(mc.pagos):'N/D'}</td></tr>
+          <tr><td>Intereses financiación</td><td class="highlight">${mc.intereses!==null?'$'+fmt(mc.intereses):'N/D'}</td></tr>
+          ${mc.punitorios?`<tr><td>Punitorios</td><td class="highlight">$${fmt(mc.punitorios)}</td></tr>`:''}
+          <tr><td>IVA sobre intereses</td><td>${mc.iva!==null?'$'+fmt(mc.iva):'N/D'}</td></tr>
+          <tr><th>Saldo final</th><th>$${fmt(mc.saldoFin)}</th></tr>
+          <tr><td>Pago mínimo</td><td>${mc.pagoMin!==null?'$'+fmt(mc.pagoMin):'N/D'}</td></tr>
+          <tr><td style="color:var(--red)">Anatocismo acumulado</td><td class="highlight">$${fmt(mc.anatocismo)}</td></tr>
+          <tr><td>% del saldo que es anatocismo</td><td class="highlight">${mc.saldoFin>0?((mc.anatocismo/mc.saldoFin)*100).toFixed(1):'0'}%</td></tr>
+        </table>
+        <div class="month-analysis"><strong>MC:</strong> ${mc.obs}</div>
+      </div>`;
+    }
+
+    html += `</div></div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function toggleMonth(el) {
+  const content = el.nextElementSibling;
+  const arrow = el.querySelector('.arrow');
+  content.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return 'N/D';
+  return Math.round(n).toLocaleString('es-AR');
+}
+
+// Init
+renderAnatChart();
+renderSalaryChart();
+renderMonths();
+</script>
+</body>
+</html>
