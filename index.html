@@ -39,9 +39,9 @@ header p { color: #9ca3af; font-size: 0.95rem; }
 .chart-section { background: white; border-radius: 12px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.1rem; }
 .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 220px; padding: 10px 0; border-bottom: 2px solid var(--border); }
-.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-.bar-stack { width: 100%; max-width: 50px; display: flex; flex-direction: column; justify-content: flex-end; }
-.bar-segment { width: 100%; transition: height 0.3s; position: relative; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; }
+.bar-stack { width: 100%; max-width: 50px; display: flex; flex-direction: column-reverse; align-items: stretch; }
+.bar-segment { width: 100%; transition: height 0.3s; position: relative; min-height: 2px; }
 .bar-segment:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; z-index: 10; }
 .bar-capital { background: #94a3b8; }
 .bar-anatocismo { background: var(--red); }
@@ -232,9 +232,9 @@ function renderAnatChart() {
     const anatH = (d.anatocismo / maxVal) * 100;
     const capH = totalH - anatH;
     html += `<div class="bar-group">
-      <div class="bar-stack">
-        <div class="bar-segment bar-anatocismo" style="height:${anatH}%" data-tooltip="Anatocismo: $${(d.anatocismo/1000000).toFixed(1)}M"></div>
-        <div class="bar-segment bar-capital" style="height:${capH}%" data-tooltip="Capital: $${((d.saldoFin-d.anatocismo)/1000000).toFixed(1)}M"></div>
+      <div class="bar-stack" style="height:${totalH}%">
+        <div class="bar-segment bar-capital" style="flex:${capH}" data-tooltip="Capital: $${((d.saldoFin-d.anatocismo)/1000000).toFixed(1)}M"></div>
+        <div class="bar-segment bar-anatocismo" style="flex:${anatH}" data-tooltip="Anatocismo: $${(d.anatocismo/1000000).toFixed(1)}M"></div>
       </div>
       <div class="bar-label">${d.period}</div>
     </div>`;
